@@ -27,12 +27,18 @@ wordfreq
 matplotlib
 python-docx
 pyenchant (con diccionario es_ES)
-spacy (con modelo es_core_news_sm)
+spacy (con modelo es_core_news_lg)
 ```
 
 ### Archivos
 
-- `GenerarSopaLetras.py`: Script principal con toda la lógica de generación
+- `main.py`: Punto de entrada principal de la aplicación
+- `config.py`: Archivo de configuración con constantes y parámetros
+- `data_loader.py`: Módulo para cargar y filtrar palabras
+- `generator.py`: Módulo para generar las sopas de letras
+- `export_pdf.py`: Módulo para exportar a formato PDF
+- `export_docx.py`: Módulo para exportar a formato DOCX
+- `drawing.py`: Utilidades para dibujar las sopas y soluciones
 - `blacklist.json`: Lista de palabras a excluir (formato JSON array)
 - `palabras_todas.txt`: Archivo opcional con palabras personalizadas (si se configura `WORD_SOURCE = "file"`)
 
@@ -43,7 +49,7 @@ spacy (con modelo es_core_news_sm)
 
 ```bash
 pip install numpy tqdm wordfreq matplotlib python-docx pyenchant spacy
-python -m spacy download es_core_news_sm
+python -m spacy download es_core_news_lg
 ```
 
 3. Asegúrate de tener instalado el diccionario español para pyenchant:
@@ -66,7 +72,7 @@ python -m spacy download es_core_news_sm
 Ejecuta el script principal:
 
 ```bash
-python GenerarSopaLetras.py
+python main.py
 ```
 
 El programa generará los siguientes archivos en el directorio actual:
@@ -76,7 +82,7 @@ El programa generará los siguientes archivos en el directorio actual:
 
 ## Configuración
 
-Puedes modificar las siguientes constantes al inicio del script para personalizar la generación:
+Puedes modificar las siguientes constantes en el archivo `config.py` para personalizar la generación:
 
 ### Configuración General
 
@@ -116,7 +122,7 @@ DOCX_IMAGE_WIDTH    = 6   # Ancho de imagen en pulgadas
 
 ## Arquitectura y Flujo de Datos
 
-El generador sigue un flujo de procesamiento secuencial dividido en varias etapas claramente definidas:
+El generador sigue un flujo de procesamiento secuencial dividido en varias etapas claramente definidas. A continuación se presentan diagramas detallados de cada fase del proceso.
 
 ### 1. Obtención y Filtrado de Palabras
 
@@ -127,12 +133,12 @@ flowchart TD
     B -->|file| D[Cargar palabras desde archivo de texto]
     C --> E[Prefiltrado inicial]
     D --> E
-    E --> F[Filtrar por longitud: 4-10 caracteres]
+    E --> F[Filtrar por longitud: MIN_WORD_LENGTH a MAX_WORD_LENGTH]
     F --> G[Filtrar solo caracteres alfabéticos ASCII]
     G --> H[Cargar lista negra desde blacklist.json]
     H --> I[Excluir palabras de la lista negra]
     I --> J[Análisis con spaCy para determinar POS]
-    J --> K[Filtrar solo NOUN, VERB, ADV]
+    J --> K[Filtrar solo categorías en POS_ALLOWED]
     K --> L[Guardar diccionario filtrado en archivo]
     L --> M[Diccionario final de palabras válidas]
 ```
@@ -149,7 +155,7 @@ flowchart TD
    - Exclusión: Elimina palabras presentes en la lista negra (`blacklist.json`)
 
 3. **Análisis lingüístico**:
-   - Utiliza `spaCy` con el modelo `es_core_news_sm` para analizar cada palabra
+   - Utiliza `spaCy` con el modelo `es_core_news_lg` para analizar cada palabra
    - Filtra solo palabras cuya categoría gramatical (POS) está en `POS_ALLOWED`
    - Categorías permitidas por defecto: sustantivos (NOUN), verbos (VERB) y adverbios (ADV)
 
@@ -222,20 +228,20 @@ flowchart TD
     HH --> JJ[Crear documento DOCX]
     
     II --> KK[Para cada puzzle]
-    KK --> LL[Crear página con título]
+    KK --> LL[Crear página con título y número de puzzle]
     LL --> MM[Dibujar cuadrícula de sopa de letras]
-    MM --> NN[Añadir lista de palabras a buscar]
+    MM --> NN[Añadir lista de palabras a buscar en SEARCH_WORDS_COLS columnas]
     NN --> OO{¿Más puzzles?}
     OO -->|Sí| KK
     OO -->|No| PP[Generar páginas de soluciones]
     PP --> QQ[Guardar archivo PDF]
     
     JJ --> RR[Crear documento Word]
-    RR --> SS[Añadir portada]
+    RR --> SS[Añadir portada con título principal]
     SS --> TT[Para cada puzzle]
-    TT --> UU[Añadir título y encabezado]
-    UU --> VV[Generar imagen de la sopa]
-    VV --> WW[Crear tabla con lista de palabras]
+    TT --> UU[Añadir título y encabezado con número]
+    UU --> VV[Generar imagen de la sopa con matplotlib]
+    VV --> WW[Crear tabla con lista de palabras en columnas]
     WW --> XX{¿Más puzzles?}
     XX -->|Sí| TT
     XX -->|No| YY[Añadir sección de soluciones]
@@ -275,13 +281,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     %% Inicio y configuración
-    Start([Inicio]) --> LoadConfig[Cargar configuración]
-    LoadConfig --> CheckDeps[Verificar dependencias]
+    Start([Inicio]) --> LoadConfig[Cargar configuración desde config.py]
+    LoadConfig --> CheckDeps[Verificar dependencias: spaCy, wordfreq, etc.]
     CheckDeps --> GetWords{Obtener palabras}
     
     %% Obtención de palabras
-    GetWords -->|wordfreq| WordFreq[top_n_list español]
-    GetWords -->|archivo| ReadFile[Leer archivo de texto]
+    GetWords -->|wordfreq| WordFreq[top_n_list español con MAX_RAW_WORDS]
+    GetWords -->|archivo| ReadFile[Leer archivo WORD_SOURCE_FILE]
     WordFreq --> RawWords[Lista de palabras crudas]
     ReadFile --> RawWords
     
@@ -299,62 +305,73 @@ flowchart TD
     TrackUsed --> PuzzleLoop[Bucle de generación de puzzles]
     
     %% Bucle de generación
-    PuzzleLoop --> SelectWords[Seleccionar palabras aleatorias]
+    PuzzleLoop --> SelectWords[Seleccionar WORDS_PER_PUZZLE palabras aleatorias]
     SelectWords --> CheckUsed{¿Suficientes palabras?}
     CheckUsed -->|No| ResetUsed[Reiniciar palabras usadas]
     ResetUsed --> SelectWords
-    CheckUsed -->|Sí| SortWords[Ordenar por longitud]
-    SortWords --> CreateMatrix[Crear matriz vacía]
-    CreateMatrix --> WordLoop[Bucle de colocación de palabras]
+    CheckUsed -->|Sí| SortWords[Ordenar por longitud descendente]
+    SortWords --> CreateMatrix[Crear matriz vacía PUZZLE_ROWS × PUZZLE_COLUMNS]
+    CreateMatrix --> InitDirCount[Inicializar contador de direcciones]
+    InitDirCount --> WordLoop[Bucle de colocación de palabras]
     
     %% Colocación de palabras
-    WordLoop --> FindPositions[Calcular posiciones válidas]
-    FindPositions --> EvalCrosses[Evaluar cruces]
+    WordLoop --> FindPositions[Calcular todas las posiciones válidas]
+    FindPositions --> EvalCrosses[Evaluar cruces con palabras existentes]
     EvalCrosses --> EvalDirs[Evaluar distribución de direcciones]
     EvalDirs --> HasValidPos{¿Posiciones válidas?}
     HasValidPos -->|Sí| SelectBest[Seleccionar mejor posición]
-    HasValidPos -->|No| TryRandom[Intentar colocación aleatoria]
+    HasValidPos -->|No| TryRandom[Intentar MAX_FALLBACK_TRIES colocaciones aleatorias]
     TryRandom --> RandomSuccess{¿Exitoso?}
     RandomSuccess -->|No| DiscardWord[Descartar palabra]
-    RandomSuccess -->|Sí| PlaceWord[Colocar palabra]
+    RandomSuccess -->|Sí| PlaceWord[Colocar palabra en matriz]
     SelectBest --> PlaceWord
     PlaceWord --> UpdateDirCount[Actualizar contador de direcciones]
     UpdateDirCount --> MoreWords{¿Más palabras?}
     DiscardWord --> MoreWords
     MoreWords -->|Sí| WordLoop
-    MoreWords -->|No| FillEmpty[Rellenar espacios vacíos]
+    MoreWords -->|No| FillEmpty[Rellenar espacios vacíos con letras aleatorias]
     
     %% Finalización de puzzle
     FillEmpty --> StorePuzzle[Almacenar puzzle y ubicaciones]
-    StorePuzzle --> MorePuzzles{¿Más puzzles?}
+    StorePuzzle --> MorePuzzles{¿Más puzzles < TOTAL_PUZZLES?}
     MorePuzzles -->|Sí| PuzzleLoop
     MorePuzzles -->|No| AllPuzzles[Lista completa de puzzles]
     
     %% Generación de documentos
-    AllPuzzles --> PDFGen[Generar PDF]
-    AllPuzzles --> DOCXGen[Generar DOCX]
+    AllPuzzles --> PDFGen[Generar PDF con matplotlib]
+    AllPuzzles --> DOCXGen[Generar DOCX con python-docx]
     
     %% Generación de PDF
-    PDFGen --> PDFPuzzleLoop[Para cada puzzle]
-    PDFPuzzleLoop --> PDFCreatePage[Crear página]
-    PDFCreatePage --> PDFDrawGrid[Dibujar cuadrícula]
-    PDFDrawGrid --> PDFAddWords[Añadir lista de palabras]
-    PDFAddWords --> PDFMorePuzzles{¿Más puzzles?}
+    PDFGen --> PDFInit[Inicializar PdfPages]
+    PDFInit --> PDFPuzzleLoop[Para cada puzzle]
+    PDFPuzzleLoop --> PDFCreatePage[Crear figura con tamaño PDF_PAGE_SIZE]
+    PDFCreatePage --> PDFAddTitle[Añadir título con número de puzzle]
+    PDFAddTitle --> PDFDrawGrid[Dibujar cuadrícula con letras]
+    PDFDrawGrid --> PDFAddWords[Añadir lista de palabras en SEARCH_WORDS_COLS columnas]
+    PDFAddWords --> PDFSavePage[Guardar página en documento]
+    PDFSavePage --> PDFMorePuzzles{¿Más puzzles?}
     PDFMorePuzzles -->|Sí| PDFPuzzleLoop
     PDFMorePuzzles -->|No| PDFSolutions[Generar páginas de soluciones]
     PDFSolutions --> SavePDF[Guardar archivo PDF]
     
     %% Generación de DOCX
-    DOCXGen --> DOCXCreate[Crear documento]
-    DOCXCreate --> DOCXCover[Añadir portada]
+    DOCXGen --> DOCXCreate[Crear Document()]
+    DOCXCreate --> DOCXCover[Añadir portada con título]
     DOCXCover --> DOCXPuzzleLoop[Para cada puzzle]
-    DOCXPuzzleLoop --> DOCXAddTitle[Añadir título]
-    DOCXAddTitle --> DOCXCreateImage[Generar imagen]
-    DOCXCreateImage --> DOCXAddTable[Crear tabla de palabras]
+    DOCXPuzzleLoop --> DOCXAddTitle[Añadir título con nivel DOCX_TITLE_LEVEL]
+    DOCXAddTitle --> DOCXCreateImage[Generar imagen con matplotlib]
+    DOCXCreateImage --> DOCXAddImage[Añadir imagen con ancho DOCX_IMAGE_WIDTH]
+    DOCXAddImage --> DOCXAddTable[Crear tabla de palabras con alineación DOCX_TABLE_ALIGN]
     DOCXAddTable --> DOCXMorePuzzles{¿Más puzzles?}
     DOCXMorePuzzles -->|Sí| DOCXPuzzleLoop
     DOCXMorePuzzles -->|No| DOCXSolutions[Añadir sección de soluciones]
-    DOCXSolutions --> SaveDOCX[Guardar archivo DOCX]
+    DOCXSolutions --> DOCXSolTable[Crear tabla con SOLUTION_COLS columnas]
+    DOCXSolTable --> DOCXSolLoop[Para cada SOLUTION_PER_PAGE soluciones]
+    DOCXSolLoop --> DOCXDrawSol[Dibujar solución con líneas rojas]
+    DOCXDrawSol --> DOCXAddSolImg[Añadir imagen con ancho DOCX_SOL_IMG_WIDTH]
+    DOCXAddSolImg --> DOCXMoreSol{¿Más soluciones?}
+    DOCXMoreSol -->|Sí| DOCXSolLoop
+    DOCXMoreSol -->|No| SaveDOCX[Guardar archivo DOCX]
     
     %% Finalización
     SavePDF --> End([Fin])
@@ -401,6 +418,7 @@ El algoritmo utiliza una estrategia de optimización multi-objetivo para colocar
 - **Prefiltrado eficiente**: Aplica filtros simples antes del análisis lingüístico más costoso.
 - **Procesamiento por lotes**: Utiliza `spaCy.pipe()` para análisis eficiente de grandes conjuntos de palabras.
 - **Barras de progreso**: Implementa `tqdm` para seguimiento visual del proceso.
+- **Generación paralela**: Utiliza múltiples hilos para generar puzzles simultáneamente cuando es posible.
 
 ## Limitaciones y Posibles Mejoras
 
@@ -413,6 +431,8 @@ El algoritmo utiliza una estrategia de optimización multi-objetivo para colocar
   - Desarrollar una interfaz gráfica para facilitar la configuración y visualización.
   - Implementar generación de puzzles temáticos basados en categorías semánticas.
   - Optimizar el algoritmo de colocación para maximizar la densidad de palabras.
+  - Añadir opciones para personalizar el diseño visual de los documentos generados.
+  - Implementar exportación a formatos adicionales (HTML, SVG, PNG).
 
 ## Licencia
 
