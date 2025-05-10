@@ -23,10 +23,10 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
 
     # puzzles
     for idx, (puzzle, words, _) in enumerate(
-        tqdm(all_puzzles, desc="DOCX: puzzles", unit="puzzle", ncols=TQDM_NCOLS),
+        tqdm(all_puzzles, desc="DOCX: puzzles", unit="puzzle", ncols=TQDM_COLS, position=0, leave=True),
         start=1
     ):
-        para = doc.add_heading(f'{TITLE_DOCX} Nº: {idx}', level=DOCX_TITLE_LEVEL)
+        para = doc.add_heading(f'{TITLE_DOCX} Nº: {idx} [{len(words)}]', level=DOCX_TITLE_LEVEL)
         para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         # image
         fig = plt.figure(figsize=(PUZZLE_COLUMNS/2, PUZZLE_ROWS/2))
@@ -64,7 +64,7 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
     for page_idx, start in enumerate(
         tqdm(range(0, len(all_puzzles), per_page),
              desc="DOCX: solutions", unit="pages",
-             total=pages, ncols=TQDM_NCOLS),
+             total=pages, ncols=TQDM_COLS),
         start=1
     ):
         if page_idx>1:
@@ -96,4 +96,4 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     doc.save(name)
-    print(f"Word document generated: {name}")
+    tqdm.write(f"Word document generated: {name}")

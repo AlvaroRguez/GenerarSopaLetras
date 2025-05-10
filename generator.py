@@ -1,14 +1,18 @@
 # generator.py
 
-import random
-import math
 import spacy
 from spacy.tokens import Doc
 
 nlp = spacy.load('es_core_news_lg')
-from config import (MIN_WORD_LENGTH, MAX_WORD_LENGTH, POS_ALLOWED,
-                    WORDS_PER_PUZZLE, PUZZLE_ROWS, PUZZLE_COLUMNS,
-                    MAX_FALLBACK_TRIES, ALPHABET, DIRECTIONS)
+from config import (MIN_WORD_LENGTH, MAX_WORD_LENGTH, POS_ALLOWED, DIRECTIONS, MAX_FALLBACK_TRIES,
+                    USE_BACKTRACKING, PUZZLE_ROWS, PUZZLE_COLUMNS, WORDS_PER_PUZZLE, USE_LOOKFOR)
+
+# Importamos las funciones de los módulos refactorizados
+from greedy import greedy_word_search
+from backtracking import backtracking_word_search
+from backtracking_utils import try_random_placement
+from word_placement import fill_empty_spaces
+from lookfor_sequential_word_search import lookfor_sequential_word_search
 
 def build_filtered_dict(raw: list[str], blacklist: set[str]) -> list[str]:
     pre = [
@@ -26,84 +30,43 @@ def build_filtered_dict(raw: list[str], blacklist: set[str]) -> list[str]:
 def generate_word_search(
     words: list[str],
     rows: int = PUZZLE_ROWS,
-    columns: int = PUZZLE_COLUMNS
-) -> tuple[list[list[str]], dict[str,tuple[tuple[int,int],tuple[int,int]]]]:
-    """Generates a word search puzzle using constants DIRECTIONS, ALPHABET, MAX_FALLBACK_TRIES..."""
-    # 0) Sort from longest to shortest
+    columns: int = PUZZLE_COLUMNS,
+    use_backtracking: bool = USE_BACKTRACKING,
+    use_lookfor: bool = USE_LOOKFOR
+) -> tuple[list[list[str]], dict]:
     words = sorted(words, key=lambda w: -len(w))
-    puzzle = [['' for _ in range(columns)] for _ in range(rows)]
-    dir_counts = {d: 0 for d in DIRECTIONS}
-    locations: dict[str, tuple[tuple[int,int], tuple[int,int]]] = {}
+    # 1) Generación inicial
+    if use_lookfor:
+        puzzle, placed, locations = lookfor_sequential_word_search(words, rows, columns)
+    else:   
+        puzzle, locations = greedy_word_search(words, rows, columns)
 
-    for word in words:
-        p = word.upper()
-        candidates: list[tuple[int,int,int,int,int]] = []
-
-        # 1) Explore valid positions
-        for df, dc in DIRECTIONS:
-            for r0 in range(rows):
-                for c0 in range(columns):
-                    rf = r0 + df*(len(p)-1)
-                    cf = c0 + dc*(len(p)-1)
-                    if not (0 <= rf < rows and 0 <= cf < columns):
-                        continue
-                    match_count = 0
-                    ok = True
-                    r, c = r0, c0
-                    for l in p:
-                        if puzzle[r][c] == l:
-                            match_count += 1
-                        elif puzzle[r][c] != '':
-                            ok = False
-                            break
-                        r += df; c += dc
-                    if ok:
-                        candidates.append((match_count, r0, c0, df, dc))
-
-        # 2) Choose best candidate (crossings + direction balancing)
-        if candidates:
-            candidates.sort(key=lambda x: x[0], reverse=True)
-            max_match = candidates[0][0]
-            top = [c for c in candidates if c[0] == max_match]
-            top.sort(key=lambda x: dir_counts[(x[3], x[4])])
-            _, r0, c0, df, dc = top[0]
-            rf = r0 + df*(len(p)-1)
-            cf = c0 + dc*(len(p)-1)
-        else:
-            # random fallback without mandatory crossing
-            placed = False
-            for _ in range(MAX_FALLBACK_TRIES):
-                df, dc = random.choice(DIRECTIONS)
-                r0, c0 = random.randrange(rows), random.randrange(columns)
-                rf = r0 + df*(len(p)-1)
-                cf = c0 + dc*(len(p)-1)
-                if not (0 <= rf < rows and 0 <= cf < columns):
-                    continue
-                ok = True
-                r, c = r0, c0
-                for l in p:
-                    if puzzle[r][c] not in ('', l):
-                        ok = False
-                        break
-                    r += df; c += dc
-                if ok:
-                    placed = True
-                    break
-            if not placed:
+    # 2) Asegurar siempre WORDS_PER_PUZZLE
+    current = len(locations)
+    if current < WORDS_PER_PUZZLE:
+        # reconstruimos dir_counts de lo ya colocado
+        dir_counts = {d:0 for d in DIRECTIONS}
+        for ((r0,c0),(rf,cf)) in locations.values():
+            d = ( (rf>r0)-(rf<r0), (cf>c0)-(cf<c0) )
+            dir_counts[d] += 1
+        # intentamos colocar las palabras que faltan
+        for w in words:
+            if len(locations) >= WORDS_PER_PUZZLE:
+                break
+            if w.upper() in locations:
                 continue
+            success = try_random_placement(
+                w, puzzle, rows, columns,
+                locations, dir_counts,
+                max_tries=MAX_FALLBACK_TRIES
+            )
+            if success:
+                # actualizamos dir_counts
+                loc = locations[w.upper()]
+                d = ( (loc[1][0]>loc[0][0]) - (loc[1][0]<loc[0][0]),
+                      (loc[1][1]>loc[0][1]) - (loc[1][1]<loc[0][1]) )
+                dir_counts[d] += 1
 
-        # 3) Place the word and update direction counter
-        r, c = r0, c0
-        for l in p:
-            puzzle[r][c] = l
-            r += df; c += dc
-        locations[p] = ((r0, c0), (rf, cf))
-        dir_counts[(df, dc)] += 1
-
-    # 4) Fill empty spaces
-    for i in range(rows):
-        for j in range(columns):
-            if puzzle[i][j] == '':
-                puzzle[i][j] = random.choice(ALPHABET)
-
-    return puzzle, locations
+    # 3) Relleno final
+    fill_empty_spaces(puzzle, rows, columns)
+    return puzzle, placed, locations

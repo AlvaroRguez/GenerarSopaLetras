@@ -10,7 +10,7 @@ from config import *
 def create_pdf(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.pdf"):
     with PdfPages(name) as pp:
         for idx, (puzzle, words, _) in enumerate(
-            tqdm(all_puzzles, desc="PDF: puzzles", unit="puzzle", ncols=TQDM_NCOLS),
+            tqdm(all_puzzles, desc="PDF: puzzles", unit="puzzle", ncols=TQDM_COLS),
             start=1
         ):
             fig = plt.figure(figsize=PDF_PAGE_SIZE)
@@ -54,7 +54,7 @@ def create_pdf(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.pd
         for page_idx, start in enumerate(
             tqdm(range(0, len(all_puzzles), per_page),
                  desc="PDF: solutions", unit="pages",
-                 total=pages, ncols=TQDM_NCOLS),
+                 total=pages, ncols=TQDM_COLS),
             start=1
         ):
             fig = plt.figure(figsize=PDF_PAGE_SIZE)
@@ -73,4 +73,4 @@ def create_pdf(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.pd
             pp.savefig(fig)
             plt.close(fig)
 
-    print(f"PDF generated: {name}")
+    tqdm.write(f"PDF generated: {name}")
