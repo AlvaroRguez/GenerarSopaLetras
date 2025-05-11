@@ -7,7 +7,6 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 VERBOSE           = True
 
 TITLE_DOCX         = "Sopa de Letras"
-USE_BACKTRACKING   = True
 USE_LOOKFOR        = True
 WORD_SOURCE        = "file" #on "wordfreq"
 WORD_SOURCE_FILE   = "palabras_todas.txt"

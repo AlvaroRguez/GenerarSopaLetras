@@ -15,13 +15,11 @@ from config import (
     WORD_SOURCE_FILE,
     PUZZLE_ROWS,
     PUZZLE_COLUMNS,
-    USE_BACKTRACKING,
     USE_LOOKFOR,
 )
 from data_loader import get_raw_words, load_blacklist
 from generator import build_filtered_dict, generate_word_search
 from export_docx import create_docx
-from export_pdf import create_pdf
 
 
 def main():
@@ -60,7 +58,6 @@ def main():
             selection,
             rows=PUZZLE_ROWS,
             columns=PUZZLE_COLUMNS,
-            use_backtracking=USE_BACKTRACKING,
             use_lookfor=USE_LOOKFOR
         )
 
@@ -82,8 +79,8 @@ def main():
     # 4) Export
     tqdm.write("📄 Creating DOCX…")
     create_docx(all_puzzles)
-    tqdm.write("📄 Creating PDF…")
-    create_pdf(all_puzzles)
+    # La creación de PDF ahora se maneja dentro de create_docx
+    # No es necesaria una llamada separada a create_pdf.
     tqdm.write("🏁 All done!")
 
 

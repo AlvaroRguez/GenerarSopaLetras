@@ -1,9 +1,10 @@
 # greedy.py
 
 import random
-from config import DIRECTIONS, PUZZLE_ROWS, PUZZLE_COLUMNS, MAX_FALLBACK_TRIES
+from config import DIRECTIONS, PUZZLE_ROWS, PUZZLE_COLUMNS, MAX_FALLBACK_TRIES, WORDS_PER_PUZZLE
 from word_placement import fill_empty_spaces
-from tqdm import tqdm
+from greedy_utils import _explore_candidates, _fallback_placement
+
 
 def greedy_word_search(
     words: list[str],
@@ -12,9 +13,7 @@ def greedy_word_search(
 ) -> tuple[list[list[str]], dict[str,tuple[tuple[int,int],tuple[int,int]]]]:
     """Algoritmo greedy para generación de sopas de letras.
     Garantiza que se coloquen exactamente WORDS_PER_PUZZLE palabras (o todas si hay menos)."""
-    from config import WORDS_PER_PUZZLE
-    from backtracking_utils import create_fallback_solution
-    
+        
     # Ordenar palabras por longitud (más largas primero) para mejorar la colocación
     words = sorted(words, key=lambda w: -len(w))
     target_words = min(WORDS_PER_PUZZLE, len(words))
@@ -40,67 +39,24 @@ def greedy_word_search(
                 break
                 
             p = word.upper()
-            candidates: list[tuple[int,int,int,int,int]] = []
 
-            # 1) Explore valid positions
-            for df, dc in random_directions:
-                for r0 in range(rows):
-                    for c0 in range(columns):
-                        rf = r0 + df*(len(p)-1)
-                        cf = c0 + dc*(len(p)-1)
-                        if not (0 <= rf < rows and 0 <= cf < columns):
-                            continue
-                        match_count = 0
-                        ok = True
-                        r, c = r0, c0
-                        for l in p:
-                            if puzzle[r][c] == l:
-                                match_count += 1
-                            elif puzzle[r][c] != '':
-                                ok = False
-                                break
-                            r += df; c += dc
-                        if ok:
-                            candidates.append((match_count, r0, c0, df, dc))
+            best_candidate_info = _explore_candidates(p, puzzle, rows, columns, random_directions, dir_counts)
 
-            # 2) Choose best candidate (crossings + direction balancing)
-            if candidates:
-                candidates.sort(key=lambda x: x[0], reverse=True)
-                max_match = candidates[0][0]
-                top = [c for c in candidates if c[0] == max_match]
-                top.sort(key=lambda x: dir_counts[(x[3], x[4])])
-                _, r0, c0, df, dc = top[0]
-                rf = r0 + df*(len(p)-1)
-                cf = c0 + dc*(len(p)-1)
+            if best_candidate_info:
+                _, r0, c0, df, dc = best_candidate_info
             else:
-                # random fallback without mandatory crossing
-                placed = False
-                for _ in range(MAX_FALLBACK_TRIES):
-                    df, dc = random.choice(random_directions)
-                    r0, c0 = random.randrange(rows), random.randrange(columns)
-                    rf = r0 + df*(len(p)-1)
-                    cf = c0 + dc*(len(p)-1)
-                    if not (0 <= rf < rows and 0 <= cf < columns):
-                        continue
-                    ok = True
-                    r, c = r0, c0
-                    for l in p:
-                        if puzzle[r][c] not in ('', l):
-                            ok = False
-                            break
-                        r += df; c += dc
-                    if ok:
-                        placed = True
-                        break
-                if not placed:
-                    continue
-
+                fallback_info = _fallback_placement(p, puzzle, rows, columns, random_directions)
+                if fallback_info:
+                    r0, c0, df, dc = fallback_info
+                else:
+                    continue  # No se pudo colocar la palabra
+            
             # 3) Place the word and update direction counter
             r, c = r0, c0
-            for l in p:
-                puzzle[r][c] = l
+            for l_char in p:
+                puzzle[r][c] = l_char
                 r += df; c += dc
-            locations[p] = ((r0, c0), (rf, cf))
+            locations[p] = ((r0, c0), (r0 + df*(len(p)-1), c0 + dc*(len(p)-1)))
             dir_counts[(df, dc)] += 1
         
         # Guardar el mejor resultado hasta ahora
@@ -112,11 +68,6 @@ def greedy_word_search(
         if len(best_locations) >= target_words:
             break
     
-    # Si no se colocaron suficientes palabras, usar solución de fallback
-    if best_puzzle is None or len(best_locations) < target_words:
-        tqdm.write(f"Usando solución de fallback en greedy para colocar {target_words} palabras")
-        return create_fallback_solution(words, rows, columns)
-
     # 4) Fill empty spaces
     fill_empty_spaces(best_puzzle, rows, columns)
 

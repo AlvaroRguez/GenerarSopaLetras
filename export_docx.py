@@ -7,9 +7,8 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from docx.oxml import OxmlElement
-from docx.oxml.ns import qn
 from tqdm import tqdm
+from docx2pdf import convert
 
 from config import *
 from drawing import draw_puzzle, draw_solution
@@ -97,3 +96,12 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
 
     doc.save(name)
     tqdm.write(f"Word document generated: {name}")
+
+    pdf_name = name.replace(".docx", ".pdf")
+    try:
+        tqdm.write(f"Converting {name} to {pdf_name}...")
+        convert(name, pdf_name)
+        tqdm.write(f"PDF document generated: {pdf_name}")
+    except Exception as e:
+        tqdm.write(f"Error converting DOCX to PDF: {e}")
+        tqdm.write("Please ensure you have Microsoft Word installed and accessible, or LibreOffice for non-Windows systems, for docx2pdf to function correctly.")

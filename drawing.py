@@ -1,7 +1,7 @@
 # drawing.py
 
 import matplotlib.pyplot as plt
-from config import PDF_PUZZLE_FONT, PDF_SOLUTION_FONT
+from config import PDF_SOLUTION_FONT
 from typing import List, Dict, Tuple
 
 def draw_puzzle(ax, puzzle: list[list[str]], fontsize_input = PDF_SOLUTION_FONT) -> None:

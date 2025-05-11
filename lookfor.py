@@ -105,11 +105,9 @@ def lookfor_sequential_word_search(
 
     if VERBOSE:
         total_time = time.perf_counter() - start_all
-        tqdm.write(f"\n[LOOKFOR] Colocadas {placed}/{WORDS_PER_PUZZLE} palabras "
-                f"en {total_time:.2f}s.")
+        tqdm.write(f"\n[LOOKFOR] Colocadas {placed}/{WORDS_PER_PUZZLE} palabras " f"en {total_time:.2f}s.")
         tqdm.write(" [LOOKFOR] Uso de direcciones:")
         for d, cnt in dir_counts.items():
             tqdm.write(f"   {d}: {cnt}")
-        tqdm.write()
 
     return puzzle, placed_words, locations

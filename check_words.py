@@ -4,7 +4,7 @@ import os
 import random
 import pickle
 
-from config import WORDS_PER_PUZZLE, PUZZLE_ROWS, PUZZLE_COLUMNS
+from config import USE_LOOKFOR, WORDS_PER_PUZZLE, PUZZLE_ROWS, PUZZLE_COLUMNS
 from generator import generate_word_search, build_filtered_dict
 from data_loader import get_raw_words, load_blacklist
 
@@ -25,7 +25,7 @@ print("   • Palabras realmente colocadas en cada puzzle:")
 
 for i in range(1, num_puzzles + 1):
     selection = random.sample(filtered, WORDS_PER_PUZZLE)
-    result = generate_word_search(selection, PUZZLE_ROWS, PUZZLE_COLUMNS)
+    result = generate_word_search(selection, PUZZLE_ROWS, PUZZLE_COLUMNS, USE_LOOKFOR)
 
     # Compatibilidad: si devuelve 3 elementos, desempacamos tres; si son 2, adaptamos
     if len(result) == 3:

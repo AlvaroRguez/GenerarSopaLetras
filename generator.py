@@ -1,18 +1,16 @@
 # generator.py
 
 import spacy
-from spacy.tokens import Doc
 
 nlp = spacy.load('es_core_news_lg')
 from config import (MIN_WORD_LENGTH, MAX_WORD_LENGTH, POS_ALLOWED, DIRECTIONS, MAX_FALLBACK_TRIES,
-                    USE_BACKTRACKING, PUZZLE_ROWS, PUZZLE_COLUMNS, WORDS_PER_PUZZLE, USE_LOOKFOR)
+                    PUZZLE_ROWS, PUZZLE_COLUMNS, WORDS_PER_PUZZLE, USE_LOOKFOR)
 
 # Importamos las funciones de los módulos refactorizados
 from greedy import greedy_word_search
-from backtracking import backtracking_word_search
-from backtracking_utils import try_random_placement
+from placement_utils import try_random_placement
 from word_placement import fill_empty_spaces
-from lookfor_sequential_word_search import lookfor_sequential_word_search
+from lookfor import lookfor_sequential_word_search
 
 def build_filtered_dict(raw: list[str], blacklist: set[str]) -> list[str]:
     pre = [
@@ -31,15 +29,16 @@ def generate_word_search(
     words: list[str],
     rows: int = PUZZLE_ROWS,
     columns: int = PUZZLE_COLUMNS,
-    use_backtracking: bool = USE_BACKTRACKING,
     use_lookfor: bool = USE_LOOKFOR
-) -> tuple[list[list[str]], dict]:
+) -> tuple[list[list[str]], list[str], dict[str, tuple[tuple[int, int], tuple[int, int]]]]:
     words = sorted(words, key=lambda w: -len(w))
+    placed: list[str] # Type hint for placed, assigned in branches
     # 1) Generación inicial
     if use_lookfor:
         puzzle, placed, locations = lookfor_sequential_word_search(words, rows, columns)
     else:   
         puzzle, locations = greedy_word_search(words, rows, columns)
+        placed = list(locations.keys()) # Define placed for this branch
 
     # 2) Asegurar siempre WORDS_PER_PUZZLE
     current = len(locations)
