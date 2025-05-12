@@ -4,36 +4,36 @@ Este proyecto es una herramienta de Python para generar automáticamente sopas d
 
 ## Características
 
-*   Generación de múltiples sopas de letras.
-*   Selección de palabras desde una fuente configurable (archivo de texto o `wordfreq`).
-*   Filtrado de palabras por longitud, tipo gramatical (usando spaCy) y lista negra.
-*   Dos algoritmos de colocación de palabras:
-    *   **Secuencial (`lookfor`):** Intenta colocar palabras secuencialmente, maximizando cruces.
-    *   **Voraz (`greedy`):** Intenta colocar palabras de forma voraz, priorizando las más largas y buscando buenos encajes.
-*   Exportación a DOCX con sopas de letras, listas de palabras y soluciones.
-*   Conversión automática de DOCX a PDF (requiere MS Word o LibreOffice).
-*   Configuración flexible a través de `config.py`.
-*   Visualización del progreso mediante `tqdm`.
+* Generación de múltiples sopas de letras.
+* Selección de palabras desde una fuente configurable (archivo de texto o `wordfreq`).
+* Filtrado de palabras por longitud, tipo gramatical (usando spaCy) y lista negra.
+* Dos algoritmos de colocación de palabras:
+  * **Secuencial (`lookfor`):** Intenta colocar palabras secuencialmente, maximizando cruces.
+  * **Voraz (`greedy`):** Intenta colocar palabras de forma voraz, priorizando las más largas y buscando buenos encajes.
+* Exportación a DOCX con sopas de letras, listas de palabras y soluciones.
+* Conversión automática de DOCX a PDF (requiere MS Word o LibreOffice).
+* Configuración flexible a través de `config.py`.
+* Visualización del progreso mediante `tqdm`.
 
 ## Estructura del Proyecto y Módulos
 
 El proyecto está organizado en varios módulos de Python, cada uno con una responsabilidad específica:
 
-*   **`main.py`**: Orquesta todo el proceso: carga de datos, generación de sopas de letras y exportación.
-*   **`config.py`**: Contiene todas las constantes y parámetros de configuración del generador (dimensiones del puzzle, número de palabras, fuentes de palabras, etc.).
-*   **`data_loader.py`**: Responsable de cargar la lista de palabras crudas (desde un archivo o `wordfreq`) y la lista negra de palabras.
-*   **`generator.py`**: Contiene la lógica principal para la generación de las sopas de letras.
-    *   `build_filtered_dict()`: Filtra la lista de palabras crudas según los criterios definidos (longitud, tipo gramatical, lista negra).
-    *   `generate_word_search()`: Coordina el algoritmo de generación seleccionado (`lookfor` o `greedy`) y asegura que se coloque el número deseado de palabras, rellenando los espacios vacíos al final.
-*   **`lookfor.py`**: Implementa el algoritmo `lookfor_sequential_word_search` que coloca palabras secuencialmente intentando maximizar los cruces entre ellas.
-*   **`greedy.py`**: Implementa el algoritmo `greedy_word_search` que intenta colocar palabras de forma voraz, priorizando las más largas y buscando buenos encajes.
-*   **`greedy_utils.py`**: Funciones de utilidad para el algoritmo `greedy`.
-*   **`word_placement.py`**: Funciones relacionadas con la colocación de palabras en la matriz y el relleno de espacios vacíos.
-*   **`placement_utils.py`**: Utilidades generales para la colocación de palabras, como intentos de colocación aleatoria.
-*   **`export_docx.py`**: Maneja la creación del documento DOCX, incluyendo las sopas de letras, las listas de palabras y las páginas de soluciones. También invoca la conversión a PDF.
-*   **`drawing.py`**: Funciones auxiliares para dibujar las sopas de letras y las soluciones usando `matplotlib` para su inserción en el DOCX.
-*   **`check_words.py`**: Un script de utilidad para probar rápidamente la generación de puzzles y la colocación de palabras.
-*   **`blacklist.json`**: Archivo JSON que contiene palabras a excluir de la generación.
+* **`main.py`**: Orquesta todo el proceso: carga de datos, generación de sopas de letras y exportación.
+* **`config.py`**: Contiene todas las constantes y parámetros de configuración del generador (dimensiones del puzzle, número de palabras, fuentes de palabras, etc.).
+* **`data_loader.py`**: Responsable de cargar la lista de palabras crudas (desde un archivo o `wordfreq`) y la lista negra de palabras.
+* **`generator.py`**: Contiene la lógica principal para la generación de las sopas de letras.
+  * `build_filtered_dict()`: Filtra la lista de palabras crudas según los criterios definidos (longitud, tipo gramatical, lista negra).
+  * `generate_word_search()`: Coordina el algoritmo de generación seleccionado (`lookfor` o `greedy`) y asegura que se coloque el número deseado de palabras, rellenando los espacios vacíos al final.
+* **`lookfor.py`**: Implementa el algoritmo `lookfor_sequential_word_search` que coloca palabras secuencialmente intentando maximizar los cruces entre ellas.
+* **`greedy.py`**: Implementa el algoritmo `greedy_word_search` que intenta colocar palabras de forma voraz, priorizando las más largas y buscando buenos encajes.
+* **`greedy_utils.py`**: Funciones de utilidad para el algoritmo `greedy`.
+* **`word_placement.py`**: Funciones relacionadas con la colocación de palabras en la matriz y el relleno de espacios vacíos.
+* **`placement_utils.py`**: Utilidades generales para la colocación de palabras, como intentos de colocación aleatoria.
+* **`export_docx.py`**: Maneja la creación del documento DOCX, incluyendo las sopas de letras, las listas de palabras y las páginas de soluciones. También invoca la conversión a PDF.
+* **`drawing.py`**: Funciones auxiliares para dibujar las sopas de letras y las soluciones usando `matplotlib` para su inserción en el DOCX.
+* **`check_words.py`**: Un script de utilidad para probar rápidamente la generación de puzzles y la colocación de palabras.
+* **`blacklist.json`**: Archivo JSON que contiene palabras a excluir de la generación.
 
 ## Diagramas de Flujo (Mermaid)
 
@@ -216,28 +216,30 @@ graph TD
 
 El archivo `config.py` centraliza todos los parámetros ajustables del generador. Algunos de los más importantes son:
 
-*   `TOTAL_PUZZLES`: Número total de sopas de letras a generar.
-*   `WORDS_PER_PUZZLE`: Número deseado de palabras a colocar en cada sopa.
-*   `PUZZLE_ROWS`, `PUZZLE_COLUMNS`: Dimensiones de la cuadrícula.
-*   `WORD_SOURCE`: Fuente de las palabras (`"file"` o `"wordfreq"`).
-*   `WORD_SOURCE_FILE`: Ruta al archivo de texto si `WORD_SOURCE` es `"file"`.
-*   `BLACKLIST_FILE`: Ruta al archivo JSON de la lista negra.
-*   `MIN_WORD_LENGTH`, `MAX_WORD_LENGTH`: Longitud mínima y máxima de las palabras a considerar.
-*   `POS_ALLOWED`: Lista de etiquetas POS (Part-of-Speech) de spaCy permitidas para filtrar palabras (ej. `['NOUN', 'ADJ', 'VERB']`).
-*   `USE_LOOKFOR`: Booleano para seleccionar el algoritmo de generación (`True` para `lookfor`, `False` para `greedy`).
-*   `DIRECTIONS`: Lista de tuplas `(dr, dc)` que representan las direcciones posibles para colocar palabras.
-*   ... y muchos otros parámetros para controlar la apariencia de la exportación DOCX/PDF.
+* `TOTAL_PUZZLES`: Número total de sopas de letras a generar.
+* `WORDS_PER_PUZZLE`: Número deseado de palabras a colocar en cada sopa.
+* `PUZZLE_ROWS`, `PUZZLE_COLUMNS`: Dimensiones de la cuadrícula.
+* `WORD_SOURCE`: Fuente de las palabras (`"file"` o `"wordfreq"`).
+* `WORD_SOURCE_FILE`: Ruta al archivo de texto si `WORD_SOURCE` es `"file"`.
+* `BLACKLIST_FILE`: Ruta al archivo JSON de la lista negra.
+* `MIN_WORD_LENGTH`, `MAX_WORD_LENGTH`: Longitud mínima y máxima de las palabras a considerar.
+* `POS_ALLOWED`: Lista de etiquetas POS (Part-of-Speech) de spaCy permitidas para filtrar palabras (ej. `['NOUN', 'ADJ', 'VERB']`).
+* `USE_LOOKFOR`: Booleano para seleccionar el algoritmo de generación (`True` para `lookfor`, `False` para `greedy`).
+* `DIRECTIONS`: Lista de tuplas `(dr, dc)` que representan las direcciones posibles para colocar palabras.
+* ... y muchos otros parámetros para controlar la apariencia de la exportación DOCX/PDF.
 
 ## Instalación y Uso
 
-1.  **Clonar el repositorio:**
+1. **Clonar el repositorio:**
+
     ```bash
     git clone <URL_DEL_REPOSITORIO>
     cd <NOMBRE_DEL_REPOSITORIO>
     ```
 
-2.  **Instalar dependencias:**
+2. **Instalar dependencias:**
     Asegúrate de tener Python 3.x instalado. Luego, instala las bibliotecas necesarias. Se recomienda usar un entorno virtual:
+
     ```bash
     python -m venv venv
     # En Windows
@@ -246,23 +248,27 @@ El archivo `config.py` centraliza todos los parámetros ajustables del generador
     # source venv/bin/activate
     pip install -r requirements.txt
     ```
+
     Si no existe un `requirements.txt`, necesitarás instalar manualmente:
+
     ```bash
     pip install tqdm python-docx matplotlib docx2pdf wordfreq spacy
     python -m spacy download es_core_news_lg
     ```
+
     *(Nota: `docx2pdf` puede requerir Microsoft Word en Windows o LibreOffice en otros sistemas para la conversión a PDF).*
 
-3.  **Configurar:**
+3. **Configurar:**
     Edita `config.py` para ajustar los parámetros de generación según tus necesidades (tamaño del puzzle, número de palabras, fuente de palabras, etc.).
     Prepara tu archivo de lista de palabras (si usas `WORD_SOURCE = "file"`) y/o tu `blacklist.json`.
 
-4.  **Ejecutar:**
+4. **Ejecutar:**
+
     ```bash
     python main.py
     ```
 
-5.  **Resultados:**
+5. **Resultados:**
     Los archivos DOCX (y PDF si la conversión es exitosa) se guardarán en el directorio raíz del proyecto. También se generará un archivo `*_filtered.txt` con la lista de palabras utilizadas después del filtrado.
 
 ## Contribuir
