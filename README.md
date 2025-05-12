@@ -41,18 +41,18 @@ El proyecto está organizado en varios módulos de Python, cada uno con una resp
 
 ```mermaid
 graph TD
-    A[Inicio: main()] --> B{Cargar y Filtrar Palabras};
-    B --> C{Obtener palabras crudas (get_raw_words)};
-    C --> D{Cargar lista negra (load_blacklist)};
-    D --> E{Construir diccionario filtrado (build_filtered_dict)};
-    E --> F{Guardar diccionario filtrado en archivo .txt};
-    F --> G{Generar Puzzles (bucle TOTAL_PUZZLES)};
-    G -- Para cada puzzle --> H{Seleccionar palabras frescas};
-    H --> I{Llamar a generate_word_search};
-    I --> J{Almacenar puzzle, palabras colocadas, ubicaciones};
-    J -- Fin del bucle --> K{Generación Completa};
-    K --> L{Exportar a DOCX (create_docx)};
-    L --> M{Fin: All done!};
+    A["Inicio: main()"] --> B{"Cargar y Filtrar Palabras"};
+    B --> C{"Obtener palabras crudas (get_raw_words)"};
+    C --> D{"Cargar lista negra (load_blacklist)"};
+    D --> E{"Construir diccionario filtrado (build_filtered_dict)"};
+    E --> F{"Guardar diccionario filtrado en archivo .txt"};
+    F --> G{"Generar Puzzles (bucle TOTAL_PUZZLES)"};
+    G -- Para cada puzzle --> H{"Seleccionar palabras frescas"};
+    H --> I{"Llamar a generate_word_search"};
+    I --> J{"Almacenar puzzle, palabras colocadas, ubicaciones"};
+    J -- Fin del bucle --> K{"Generación Completa"};
+    K --> L{"Exportar a DOCX (create_docx)"};
+    L --> M["Fin: All done!"];
 ```
 
 ### 2. Carga y Filtrado de Palabras
@@ -60,155 +60,155 @@ graph TD
 ```mermaid
 graph TD
     subgraph data_loader.py
-        A[get_raw_words()] --> A1{WORD_SOURCE == "wordfreq"?};
-        A1 -- Sí --> A2[top_n_list("es", MAX_RAW_WORDS)];
-        A1 -- No --> A3[Leer desde WORD_SOURCE_FILE];
-        A2 --> A4[Retornar lista de palabras crudas];
+        A["get_raw_words()"] --> A1{"WORD_SOURCE == 'wordfreq'?"};
+        A1 -- Sí --> A2["top_n_list(&quot;es&quot;, MAX_RAW_WORDS)"];
+        A1 -- No --> A3["Leer desde WORD_SOURCE_FILE"];
+        A2 --> A4["Retornar lista de palabras crudas"];
         A3 --> A4;
-        B[load_blacklist()] --> B1[Leer BLACKLIST_FILE (JSON)];
-        B1 --> B2[Retornar conjunto de palabras en minúsculas];
+        B["load_blacklist()"] --> B1["Leer BLACKLIST_FILE (JSON)"];
+        B1 --> B2["Retornar conjunto de palabras en minúsculas"];
     end
 
     subgraph generator.py
-        C[build_filtered_dict(raw_words, blacklist)] --> C1{Filtrar por longitud (MIN/MAX_WORD_LENGTH)};
-        C1 --> C2{Filtrar por isascii() y isalpha()};
-        C2 --> C3{Filtrar por lista negra (minúsculas)};
-        C3 --> C4{Procesar con spaCy nlp.pipe()};
-        C4 -- Para cada palabra --> C5{POS_ALLOWED? (Ej: ADJ, NOUN, VERB)};
-        C5 -- Sí --> C6[Añadir a lista filtrada];
-        C6 --> C7[Retornar lista de palabras filtradas];
+        C["build_filtered_dict(raw_words, blacklist)"] --> C1{"Filtrar por longitud (MIN/MAX_WORD_LENGTH)"};
+        C1 --> C2{"Filtrar por isascii() y isalpha()"};
+        C2 --> C3{"Filtrar por lista negra (minúsculas)"};
+        C3 --> C4{"Procesar con spaCy nlp.pipe()"};
+        C4 -- Para cada palabra --> C5{"POS_ALLOWED? (Ej: ADJ, NOUN, VERB)"};
+        C5 -- Sí --> C6["Añadir a lista filtrada"];
+        C6 --> C7["Retornar lista de palabras filtradas"];
     end
 
-    Start --> X[Llamada desde main.py];
+    Start --> X["Llamada desde main.py"];
     X --> A;
     X --> B;
-    A4 --> Y[Palabras Crudas];
-    B2 --> Z[Lista Negra];
+    A4 --> Y["Palabras Crudas"];
+    B2 --> Z["Lista Negra"];
     Y --> C;
     Z --> C;
-    C7 --> End[Diccionario Filtrado para main.py];
+    C7 --> End["Diccionario Filtrado para main.py"];
 ```
 
 ### 3. Generación de Sopa de Letras (`generator.py - generate_word_search`)
 
 ```mermaid
 graph TD
-    A[generate_word_search(words, rows, cols, use_lookfor)] --> B{Ordenar palabras por longitud (descendente)};
-    B --> C{use_lookfor?};
-    C -- Sí --> D[lookfor_sequential_word_search(words, rows, cols)];
-    D --> E[puzzle, placed_words, locations];
-    C -- No --> F[greedy_word_search(words, rows, cols)];
-    F --> G[puzzle, locations];
-    G --> H[placed_words = list(locations.keys())];
-    E --> I{Asegurar WORDS_PER_PUZZLE};
+    A["generate_word_search(words, rows, cols, use_lookfor)"] --> B{"Ordenar palabras por longitud (descendente)"};
+    B --> C{"use_lookfor?"};
+    C -- Sí --> D["lookfor_sequential_word_search(words, rows, cols)"];
+    D --> E["puzzle, placed_words, locations"];
+    C -- No --> F["greedy_word_search(words, rows, cols)"];
+    F --> G["puzzle, locations"];
+    G --> H["placed_words = list(locations.keys())"];
+    E --> I{"Asegurar WORDS_PER_PUZZLE"};
     H --> I;
-    I -- len(locations) < WORDS_PER_PUZZLE --> J{Reconstruir dir_counts de palabras colocadas};
-    J --> K{Iterar palabras faltantes};
-    K -- Para cada palabra w --> L{w no está en locations?};
-    L -- Sí --> M[try_random_placement(w, ...)];
-    M -- Éxito --> N[Actualizar locations y dir_counts];
+    I -- len(locations) < WORDS_PER_PUZZLE --> J{"Reconstruir dir_counts de palabras colocadas"};
+    J --> K{"Iterar palabras faltantes"};
+    K -- Para cada palabra w --> L{"w no está en locations?"};
+    L -- Sí --> M["try_random_placement(w, ...)"];
+    M -- Éxito --> N["Actualizar locations y dir_counts"];
     N --> K;
     L -- No --> K;
     M -- Fracaso --> K;
-    K -- Fin iteración o suficientes palabras --> O{Relleno Final};
+    K -- Fin iteración o suficientes palabras --> O{"Relleno Final"};
     I -- len(locations) >= WORDS_PER_PUZZLE --> O;
-    O --> P[fill_empty_spaces(puzzle, rows, cols)];
-    P --> Q[Retornar (puzzle, placed_words, locations)];
+    O --> P["fill_empty_spaces(puzzle, rows, cols)"];
+    P --> Q["Retornar (puzzle, placed_words, locations)"];
 ```
 
 ### 4. Algoritmo Secuencial (`lookfor.py - lookfor_sequential_word_search`)
 
 ```mermaid
 graph TD
-    A[lookfor_sequential_word_search(words, rows, cols)] --> B[Crear matriz vacía 'puzzle'];
-    B --> C[Inicializar locations, placed_words, dir_counts];
-    C --> D{Iterar sobre 'words' (hasta WORDS_PER_PUZZLE colocadas)};
-    D -- Para cada 'word' --> E[Convertir a mayúsculas P = word.upper()];
-    E --> F[Inicializar 'candidates' (posibles ubicaciones)];
-    F --> G{Explorar todas las posiciones (r0, c0) y direcciones (df, dc)};
-    G -- Para cada posición/dirección --> H{Cabe la palabra P?};
-    H -- Sí --> I{Calcular 'match' (cruces) y verificar si es 'ok'};
-    I -- ok --> J[Añadir (match, r0, c0, df, dc) a 'candidates'];
+    A["lookfor_sequential_word_search(words, rows, cols)"] --> B["Crear matriz vacía 'puzzle'" ];
+    B --> C["Inicializar locations, placed_words, dir_counts"];
+    C --> D{"Iterar sobre 'words' (hasta WORDS_PER_PUZZLE colocadas)"};
+    D -- Para cada 'word' --> E["Convertir a mayúsculas P = word.upper()"];
+    E --> F["Inicializar 'candidates' (posibles ubicaciones)"];
+    F --> G{"Explorar todas las posiciones (r0, c0) y direcciones (df, dc)"};
+    G -- Para cada posición/dirección --> H{"Cabe la palabra P?"};
+    H -- Sí --> I{"Calcular 'match' (cruces) y verificar si es 'ok'"};
+    I -- ok --> J["Añadir (match, r0, c0, df, dc) a 'candidates'" ];
     J --> G;
     H -- No --> G;
     I -- no ok --> G;
-    G -- Fin exploración --> K{Hay 'candidates'?};
+    G -- Fin exploración --> K{"Hay 'candidates'?"};
     K -- No --> D;
-    K -- Sí --> L[Ordenar 'candidates' por 'match' (desc), luego por dir_counts[(df,dc)] (asc)];
-    L --> M[Seleccionar mejor candidato: (match, r0, c0, df, dc)];
-    M --> N[Colocar palabra P en 'puzzle' en (r0,c0) con dirección (df,dc)];
-    N --> O[Actualizar 'locations', 'dir_counts', 'placed_words'];
+    K -- Sí --> L["Ordenar 'candidates' por 'match' (desc), luego por dir_counts[(df,dc)] (asc)"];
+    L --> M["Seleccionar mejor candidato: (match, r0, c0, df, dc)"];
+    M --> N["Colocar palabra P en 'puzzle' en (r0,c0) con dirección (df,dc)"];
+    N --> O["Actualizar 'locations', 'dir_counts', 'placed_words'" ];
     O --> D;
-    D -- Fin iteración o palabras colocadas --> P[Rellenar espacios vacíos en 'puzzle' con letras aleatorias];
-    P --> Q[Retornar (puzzle, placed_words, locations)];
+    D -- Fin iteración o palabras colocadas --> P["Rellenar espacios vacíos en 'puzzle' con letras aleatorias"];
+    P --> Q["Retornar (puzzle, placed_words, locations)"];
 ```
 
 ### 5. Algoritmo Voraz (`greedy.py - greedy_word_search`)
 
 ```mermaid
 graph TD
-    A[greedy_word_search(words, rows, cols)] --> B[Ordenar palabras por longitud (descendente)];
-    B --> C[target_words = min(WORDS_PER_PUZZLE, len(words))];
-    C --> D[max_attempts = 3, best_puzzle = None, best_locations = {}];
-    D --> E{Bucle de intentos (hasta max_attempts)};
-    E -- Intento actual --> F[Crear puzzle vacío, dir_counts, locations];
-    F --> G{Mezclar direcciones (si attempt > 0)};
-    G --> H{Iterar sobre 'words' ordenadas};
-    H -- Para cada 'word' --> I{len(locations) >= target_words?};
-    I -- Sí --> H_End[Fin iteración palabras para este intento];
-    I -- No --> J[P = word.upper()];
-    J --> K[_explore_candidates(P, puzzle, ...)];
-    K --> L{Candidato encontrado?};
-    L -- Sí (best_candidate_info) --> M[Extraer (r0, c0, df, dc)];
-    L -- No --> N[_fallback_placement(P, puzzle, ...)];
-    N --> O{Fallback exitoso?};
+    A["greedy_word_search(words, rows, cols)"] --> B["Ordenar palabras por longitud (descendente)"];
+    B --> C["target_words = min(WORDS_PER_PUZZLE, len(words))"];
+    C --> D["max_attempts = 3, best_puzzle = None, best_locations = {}"];
+    D --> E{"Bucle de intentos (hasta max_attempts)"};
+    E -- Intento actual --> F["Crear puzzle vacío, dir_counts, locations"];
+    F --> G{"Mezclar direcciones (si attempt > 0)"};
+    G --> H{"Iterar sobre 'words' ordenadas"};
+    H -- Para cada 'word' --> I{"len(locations) >= target_words?"};
+    I -- Sí --> H_End["Fin iteración palabras para este intento"];
+    I -- No --> J["P = word.upper()"];
+    J --> K["_explore_candidates(P, puzzle, ...)"];
+    K --> L{"Candidato encontrado?"};
+    L -- Sí (best_candidate_info) --> M["Extraer (r0, c0, df, dc)"];
+    L -- No --> N["_fallback_placement(P, puzzle, ...)"];
+    N --> O{"Fallback exitoso?"};
     O -- Sí (fallback_info) --> M;
     O -- No --> H;
-    M --> P[Colocar palabra P en puzzle];
-    P --> Q[Actualizar locations y dir_counts];
+    M --> P["Colocar palabra P en puzzle"];
+    P --> Q["Actualizar locations y dir_counts"];
     Q --> H;
-    H_End --> R{len(locations) > len(best_locations)?};
-    R -- Sí --> S[Actualizar best_puzzle, best_locations (copia profunda)];
-    S --> T{len(best_locations) >= target_words?};
-    T -- Sí --> E_End[Fin bucle de intentos];
+    H_End --> R{"len(locations) > len(best_locations)?"};
+    R -- Sí --> S["Actualizar best_puzzle, best_locations (copia profunda)"];
+    S --> T{"len(best_locations) >= target_words?"};
+    T -- Sí --> E_End["Fin bucle de intentos"];
     T -- No --> E;
     R -- No --> E;
     E -- Fin bucle de intentos --> E_End;
-    E_End --> U[fill_empty_spaces(best_puzzle, rows, cols)];
-    U --> V[Retornar (best_puzzle, best_locations)];
+    E_End --> U["fill_empty_spaces(best_puzzle, rows, cols)"];
+    U --> V["Retornar (best_puzzle, best_locations)"];
 ```
 
 ### 6. Exportación a DOCX y PDF (`export_docx.py - create_docx`)
 
 ```mermaid
 graph TD
-    A[create_docx(all_puzzles, name)] --> B[Crear Documento DOCX];
-    B --> C[Añadir Portada (Título)];
-    C --> D[Añadir Salto de Página];
-    D --> E{Iterar sobre 'all_puzzles' (Sopas de Letras)};
-    E -- Para cada (puzzle, words, _) --> F[Añadir Título del Puzzle];
-    F --> G[Generar Imagen del Puzzle (draw_puzzle)];
-    G --> H[Guardar imagen en buffer BytesIO];
-    H --> I[Añadir imagen al DOCX];
-    I --> J[Crear Tabla de Palabras];
-    J --> K[Llenar tabla con 'words' ordenadas];
+    A["create_docx(all_puzzles, name)"] --> B["Crear Documento DOCX"];
+    B --> C["Añadir Portada (Título)"];
+    C --> D["Añadir Salto de Página"];
+    D --> E{"Iterar sobre 'all_puzzles' (Sopas de Letras)"};
+    E -- Para cada (puzzle, words, _) --> F["Añadir Título del Puzzle"];
+    F --> G["Generar Imagen del Puzzle (draw_puzzle)"];
+    G --> H["Guardar imagen en buffer BytesIO"];
+    H --> I["Añadir imagen al DOCX"];
+    I --> J["Crear Tabla de Palabras"];
+    J --> K["Llenar tabla con 'words' ordenadas"];
     K --> E;
-    E -- Fin bucle puzzles --> L[Añadir Salto de Página];
-    L --> M[Añadir Título 'Solutions'];
-    M --> N[Añadir Salto de Página];
-    N --> O{Iterar sobre 'all_puzzles' para Soluciones (en grupos por página)};
-    O -- Para cada grupo de soluciones --> P[Crear Tabla para Soluciones en la página];
-    P -- Para cada (puz, _, locs) en el grupo --> Q[Generar Imagen de la Solución (draw_solution)];
-    Q --> R[Guardar imagen en buffer BytesIO];
-    R --> S[Añadir imagen a celda de la tabla en DOCX];
+    E -- Fin bucle puzzles --> L["Añadir Salto de Página"];
+    L --> M["Añadir Título 'Solutions'" ];
+    M --> N["Añadir Salto de Página"];
+    N --> O{"Iterar sobre 'all_puzzles' para Soluciones (en grupos por página)"};
+    O -- Para cada grupo de soluciones --> P["Crear Tabla para Soluciones en la página"];
+    P -- Para cada (puz, _, locs) en el grupo --> Q["Generar Imagen de la Solución (draw_solution)"];
+    Q --> R["Guardar imagen en buffer BytesIO"];
+    R --> S["Añadir imagen a celda de la tabla en DOCX"];
     S --> P;
     P -- Fin grupo --> O;
-    O -- Fin bucle soluciones --> T[Guardar Documento DOCX (doc.save(name))];
-    T --> U[pdf_name = name.replace(".docx", ".pdf")];
-    U --> V{Intentar convertir DOCX a PDF (convert(name, pdf_name))};
-    V -- Éxito --> W[PDF Generado];
-    V -- Error --> X[Mostrar mensaje de error de conversión];
-    W --> Z[Fin];
+    O -- Fin bucle soluciones --> T["Guardar Documento DOCX (doc.save(name))"];
+    T --> U["pdf_name = name.replace(&quot;.docx&quot;, &quot;.pdf&quot;)"];
+    U --> V{"Intentar convertir DOCX a PDF (convert(name, pdf_name))"};
+    V -- Éxito --> W["PDF Generado"];
+    V -- Error --> X["Mostrar mensaje de error de conversión"];
+    W --> Z["Fin"];
     X --> Z;
 ```
 
