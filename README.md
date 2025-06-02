@@ -4,16 +4,32 @@ Este proyecto es una herramienta de Python para generar automáticamente sopas d
 
 ## Características
 
+Este proyecto ofrece dos interfaces para la generación de sopas de letras: una aplicación web interactiva y la utilidad de línea de comandos original.
+
+**Características Comunes (Lógica Subyacente):**
 * Generación de múltiples sopas de letras.
-* Selección de palabras desde una fuente configurable (archivo de texto o `wordfreq`).
-* Filtrado de palabras por longitud, tipo gramatical (usando spaCy) y lista negra.
+* Selección de palabras desde una fuente configurable (archivo de texto local o la biblioteca `wordfreq` para palabras comunes en español).
+* Filtrado de palabras por longitud, tipo gramatical (usando spaCy) y una lista negra personalizable.
 * Dos algoritmos de colocación de palabras:
-  * **Secuencial (`lookfor`):** Intenta colocar palabras secuencialmente, maximizando cruces.
+  * **Secuencial (`lookfor`):** Intenta colocar palabras secuencialmente, maximizando cruces. Ideal para sopas de letras más densas.
   * **Voraz (`greedy`):** Intenta colocar palabras de forma voraz, priorizando las más largas y buscando buenos encajes.
-* Exportación a DOCX con sopas de letras, listas de palabras y soluciones.
-* Conversión automática de DOCX a PDF (requiere MS Word o LibreOffice).
-* Configuración flexible a través de `config.py`.
-* Visualización del progreso mediante `tqdm`.
+* Exportación de los puzzles generados a formato DOCX, incluyendo las sopas de letras, las listas de palabras utilizadas y las páginas de soluciones.
+* Configuración flexible de la generación (aunque la interfaz web expone los parámetros más comunes de forma interactiva, mientras que la CLI depende de `config.py`).
+
+**Interfaz de Aplicación Web:**
+* Interfaz gráfica fácil de usar para configurar y generar sopas de letras.
+* Permite subir archivos de palabras y listas negras directamente desde el navegador.
+* Previsualización de las sopas de letras generadas como imágenes en el navegador.
+* Exportación directa de los puzzles generados a un único archivo DOCX.
+* Estilos CSS para una mejor experiencia de usuario.
+* Pruebas unitarias básicas con Pytest.
+
+**Interfaz de Línea de Comandos (CLI):**
+* Generación basada en la configuración definida en `config.py`.
+* Visualización del progreso en la consola mediante `tqdm`.
+* Conversión automática opcional de DOCX a PDF (ver nota sobre dependencias).
+
+*(Nota sobre `docx2pdf`): La conversión automática de DOCX a PDF, presente en la versión CLI original, es una funcionalidad opcional que depende de tener Microsoft Word (en Windows) o LibreOffice (en macOS/Linux) instalado y accesible en el PATH del sistema. Esta conversión puede ser propensa a errores y no está integrada en la interfaz web, la cual se enfoca en la exportación a DOCX.*
 
 ## Estructura del Proyecto y Módulos
 
@@ -214,7 +230,7 @@ graph TD
 
 ## Configuración (`config.py`)
 
-El archivo `config.py` centraliza todos los parámetros ajustables del generador. Algunos de los más importantes son:
+El archivo `config.py` centraliza todos los parámetros ajustables del generador, especialmente para la **interfaz de línea de comandos (CLI)**. Muchos de estos valores actúan como **valores por defecto** para la interfaz web si no se especifican en el formulario. Algunos de los más importantes son:
 
 * `TOTAL_PUZZLES`: Número total de sopas de letras a generar.
 * `WORDS_PER_PUZZLE`: Número deseado de palabras a colocar en cada sopa.
@@ -228,48 +244,111 @@ El archivo `config.py` centraliza todos los parámetros ajustables del generador
 * `DIRECTIONS`: Lista de tuplas `(dr, dc)` que representan las direcciones posibles para colocar palabras.
 * ... y muchos otros parámetros para controlar la apariencia de la exportación DOCX/PDF.
 
-## Instalación y Uso
+## Web Application Interface
 
-1. **Clonar el repositorio:**
+Esta sección describe cómo ejecutar y utilizar la interfaz web para generar sopas de letras.
+
+### Running the Web Application
+
+1.  **Clonar el repositorio (si aún no lo has hecho):**
+    ```bash
+    git clone <URL_DEL_REPOSITORIO>
+    cd <NOMBRE_DEL_REPOSITORIO>
+    ```
+
+2.  **Crear un entorno virtual (recomendado) y activarlo:**
+    ```bash
+    python -m venv venv
+    # En Windows
+    venv\Scripts\activate
+    # En macOS/Linux
+    source venv/bin/activate
+    ```
+
+3.  **Instalar dependencias:**
+    Asegúrate de tener Python 3.x instalado. Luego, instala las bibliotecas necesarias usando el archivo `requirements.txt` proporcionado:
+    ```bash
+    pip install -r requirements.txt
+    ```
+    El modelo de lenguaje de spaCy (`es_core_news_lg`) está listado en `requirements.txt` con un enlace directo para su instalación. Si por alguna razón esto falla o prefieres instalarlo manualmente después, puedes usar:
+    ```bash
+    python -m spacy download es_core_news_lg
+    ```
+
+4.  **Ejecutar la aplicación Flask:**
+    Una vez instaladas las dependencias, puedes iniciar la aplicación web.
+    *   En Windows:
+        ```bash
+        set FLASK_APP=app.py
+        flask run
+        ```
+    *   En macOS/Linux:
+        ```bash
+        export FLASK_APP=app.py
+        flask run
+        ```
+    Por defecto, la aplicación estará disponible en tu navegador en `http://127.0.0.1:5000/`.
+
+### Using the Web Interface
+
+Al acceder a la aplicación en tu navegador, verás la página principal con un formulario de configuración:
+
+*   **Number of Puzzles:** Cuántas sopas de letras diferentes generar.
+*   **Words per Puzzle:** Número objetivo de palabras a incluir en cada sopa.
+*   **Puzzle Rows/Columns:** Dimensiones de la cuadrícula para cada sopa de letras.
+*   **Word Source File:** Permite subir un archivo de texto (`.txt`) con tu propia lista de palabras (una palabra por línea). Si se deja vacío, se utilizará la fuente de palabras por defecto configurada en el sistema (ej., `wordfreq`).
+*   **Blacklist File:** Permite subir un archivo JSON (`.json`) con una lista de palabras que no deben incluirse en los puzzles.
+*   **Use 'lookfor' algorithm:** Casilla para seleccionar el algoritmo "lookfor" (más denso y con más cruces). Si no se marca, se usará el algoritmo "greedy".
+
+Una vez configurado, haz clic en "Generate Puzzles".
+
+*   **Visualización de Puzzles:** Si la generación es exitosa, serás redirigido a una página que lista los puzzles generados. Desde aquí, puedes:
+    *   Hacer clic en "View Puzzle" para ver una imagen de cada sopa de letras individualmente.
+*   **Exportación a DOCX:** En la página de lista de puzzles, encontrarás un botón "Export All Puzzles to DOCX". Al hacer clic, se descargará un archivo `.docx` conteniendo todas las sopas de letras generadas, sus listas de palabras y las páginas de soluciones.
+*   **Mensajes de Error/Advertencia:** Si ocurre algún problema (ej., archivo de palabras no encontrado, no se pueden colocar palabras con la configuración dada), la aplicación mostrará mensajes de error o advertencia en la parte superior de la página.
+
+## Command-Line Interface (Original Version)
+
+Esta sección describe cómo usar la versión original de la herramienta, a través de la línea de comandos.
+
+1.  **Clonar el repositorio (si aún no lo has hecho):**
 
     ```bash
     git clone <URL_DEL_REPOSITORIO>
     cd <NOMBRE_DEL_REPOSITORIO>
     ```
 
-2. **Instalar dependencias:**
-    Asegúrate de tener Python 3.x instalado. Luego, instala las bibliotecas necesarias. Se recomienda usar un entorno virtual:
-
+2.  **Crear un entorno virtual (recomendado) y activarlo (si no lo hiciste para la app web):**
     ```bash
     python -m venv venv
     # En Windows
     venv\Scripts\activate
     # En macOS/Linux
-    # source venv/bin/activate
+    source venv/bin/activate
+    ```
+
+3.  **Instalar dependencias:**
+    Utiliza el archivo `requirements.txt` que incluye todas las dependencias necesarias tanto para la CLI como para la aplicación web:
+    ```bash
     pip install -r requirements.txt
     ```
-
-    Si no existe un `requirements.txt`, necesitarás instalar manualmente:
-
+    Para el modelo de spaCy, si no se instaló correctamente a través del enlace en `requirements.txt`:
     ```bash
-    pip install tqdm python-docx matplotlib docx2pdf wordfreq spacy
     python -m spacy download es_core_news_lg
     ```
+    *(Consulta la nota sobre `docx2pdf` en la sección "Características" si deseas exportar a PDF desde la CLI).*
 
-    *(Nota: `docx2pdf` puede requerir Microsoft Word en Windows o LibreOffice en otros sistemas para la conversión a PDF).*
+4.  **Configurar:**
+    Edita `config.py` para ajustar los parámetros de generación según tus necesidades (tamaño del puzzle, número de palabras, fuente de palabras, etc.). La CLI se basa enteramente en este archivo para su configuración.
+    Prepara tu archivo de lista de palabras (si usas `WORD_SOURCE = "file"` en `config.py`) y/o tu `blacklist.json`.
 
-3. **Configurar:**
-    Edita `config.py` para ajustar los parámetros de generación según tus necesidades (tamaño del puzzle, número de palabras, fuente de palabras, etc.).
-    Prepara tu archivo de lista de palabras (si usas `WORD_SOURCE = "file"`) y/o tu `blacklist.json`.
-
-4. **Ejecutar:**
-
+5.  **Ejecutar:**
     ```bash
     python main.py
     ```
 
-5. **Resultados:**
-    Los archivos DOCX (y PDF si la conversión es exitosa) se guardarán en el directorio raíz del proyecto. También se generará un archivo `*_filtered.txt` con la lista de palabras utilizadas después del filtrado.
+6.  **Resultados:**
+    Los archivos DOCX (y PDF si la conversión es exitosa y `docx2pdf` está configurado) se guardarán en el directorio raíz del proyecto. También se generará un archivo `*_filtered.txt` con la lista de palabras utilizadas después del filtrado.
 
 ## Contribuir
 
