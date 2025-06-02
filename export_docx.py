@@ -7,13 +7,13 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
-from tqdm import tqdm
-from docx2pdf import convert
+# from tqdm import tqdm # Removed tqdm
+# from docx2pdf import convert # Removed docx2pdf
 
-from config import *
+from config import * # Assuming this imports necessary constants like TITLE_DOCX etc.
 from drawing import draw_puzzle, draw_solution
 
-def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.docx"):
+def create_docx(all_puzzles): # Removed name parameter
     doc = Document()
     # cover
     para = doc.add_heading(TITLE_DOCX, level=1)
@@ -21,10 +21,10 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
     doc.add_page_break()
 
     # puzzles
-    for idx, (puzzle, words, _) in enumerate(
-        tqdm(all_puzzles, desc="DOCX: puzzles", unit="puzzle", ncols=TQDM_COLS, position=0, leave=True),
-        start=1
-    ):
+    # Assuming all_puzzles is a list of tuples: (puzzle_grid, placed_words, locations)
+    # Ensure PUZZLE_COLUMNS, PUZZLE_ROWS, PDF_PUZZLE_FONT, DOCX_IMAGE_WIDTH, DOCX_PARA_ALIGN etc. are available from config
+    for idx, (puzzle, words, _) in enumerate(all_puzzles, start=1):
+        # tqdm removed
         para = doc.add_heading(f'{TITLE_DOCX} Nº: {idx} [{len(words)}]', level=DOCX_TITLE_LEVEL)
         para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         # image
@@ -59,13 +59,9 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
     doc.add_page_break()
     per_page, cols = SOLUTION_PER_PAGE, SOLUTION_COLS
     rows = math.ceil(per_page/cols)
-    pages = math.ceil(len(all_puzzles)/per_page)
-    for page_idx, start in enumerate(
-        tqdm(range(0, len(all_puzzles), per_page),
-             desc="DOCX: solutions", unit="pages",
-             total=pages, ncols=TQDM_COLS),
-        start=1
-    ):
+    # pages = math.ceil(len(all_puzzles)/per_page) # Not needed without tqdm
+    for page_idx, start in enumerate(range(0, len(all_puzzles), per_page), start=1):
+        # tqdm removed
         if page_idx>1:
             doc.add_page_break()
         group = all_puzzles[start:start+per_page]
@@ -94,14 +90,19 @@ def create_docx(all_puzzles, name: str = f"{TOTAL_PUZZLES}_word_search_puzzles.d
             para = cell.paragraphs[0]
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    doc.save(name)
-    tqdm.write(f"Word document generated: {name}")
+    # doc.save(name) # Removed saving to file
+    # tqdm.write(f"Word document generated: {name}") # Removed tqdm
 
-    pdf_name = name.replace(".docx", ".pdf")
-    try:
-        tqdm.write(f"Converting {name} to {pdf_name}...")
-        convert(name, pdf_name)
-        tqdm.write(f"PDF document generated: {pdf_name}")
-    except Exception as e:
-        tqdm.write(f"Error converting DOCX to PDF: {e}")
-        tqdm.write("Please ensure you have Microsoft Word installed and accessible, or LibreOffice for non-Windows systems, for docx2pdf to function correctly.")
+    # pdf_name = name.replace(".docx", ".pdf") # Removed PDF conversion
+    # try:
+    #     tqdm.write(f"Converting {name} to {pdf_name}...")
+    #     convert(name, pdf_name)
+    #     tqdm.write(f"PDF document generated: {pdf_name}")
+    # except Exception as e:
+    #     tqdm.write(f"Error converting DOCX to PDF: {e}")
+    #     tqdm.write("Please ensure you have Microsoft Word installed and accessible, or LibreOffice for non-Windows systems, for docx2pdf to function correctly.")
+
+    docx_io = io.BytesIO()
+    doc.save(docx_io)
+    docx_io.seek(0)
+    return docx_io

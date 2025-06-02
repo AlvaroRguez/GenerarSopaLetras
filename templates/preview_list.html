@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generated Puzzles</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Generated Puzzles</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% if puzzles_count > 0 %}
+        <p><a href="{{ url_for('export_docx_route') }}" class="button-link">Export All Puzzles to DOCX</a></p>
+        <ul class="puzzle-list">
+        {% for i in range(puzzles_count) %}
+            <li>
+                <span>Puzzle {{ i + 1 }}</span>
+                <a href="{{ url_for('serve_puzzle_image', puzzle_index=i) }}" target="_blank" class="button-link">View Puzzle</a>
+                {# Add link for solution preview later if needed #}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No puzzles generated yet or an error occurred. Please go back and try again.</p>
+    {% endif %}
+    <a href="{{ url_for('home') }}" class="button-link">Generate More Puzzles</a>
+</div>
+</body>
+</html>

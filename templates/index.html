@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Search Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container" id="index-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class=flashes>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    <h1>Word Search Puzzle Generator</h1>
+    <form action="/generate" method="post" enctype="multipart/form-data">
+        <h2>Configuration</h2>
+
+        <label for="total_puzzles">Number of Puzzles:</label>
+        <input type="number" id="total_puzzles" name="total_puzzles" value="1">
+
+        <label for="words_per_puzzle">Words per Puzzle:</label>
+        <input type="number" id="words_per_puzzle" name="words_per_puzzle" value="10">
+
+        <label for="puzzle_rows">Puzzle Rows:</label>
+        <input type="number" id="puzzle_rows" name="puzzle_rows" value="15">
+
+        <label for="puzzle_columns">Puzzle Columns:</label>
+        <input type="number" id="puzzle_columns" name="puzzle_columns" value="15">
+
+        <label for="word_source_file">Word Source File (leave empty for default):</label>
+        <input type="file" id="word_source_file" name="word_source_file">
+
+        <label for="blacklist_file">Blacklist File (optional):</label>
+        <input type="file" id="blacklist_file" name="blacklist_file">
+
+        <label for="use_lookfor">Use 'lookfor' algorithm (more dense puzzles):</label>
+        <input type="checkbox" id="use_lookfor" name="use_lookfor" value="true">
+
+        <input type="submit" value="Generate Puzzles">
+    </form>
+    </div>
+</body>
+</html>

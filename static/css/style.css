@@ -1,0 +1,122 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"],
+form input[type="number"],
+form input[type="file"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+form input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+form label[for="use_lookfor"] {
+    display: inline; /* Allow checkbox and label on same line */
+    font-weight: normal;
+}
+
+
+input[type="submit"], .button-link {
+    display: inline-block;
+    background: #5cb85c;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1em;
+    margin-top: 10px;
+}
+
+input[type="submit"]:hover, .button-link:hover {
+    background: #4cae4c;
+}
+
+.flashes {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.flashes li {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.flashes .error {
+    background: #f2dede;
+    color: #a94442;
+    border: 1px solid #ebccd1;
+}
+
+.flashes .success { /* Assuming you might add success messages */
+    background: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+}
+
+.puzzle-list {
+    list-style: none;
+    padding: 0;
+}
+.puzzle-list li {
+    background: #eee;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.puzzle-list li a {
+    text-decoration: none;
+    color: #337ab7;
+}
+.puzzle-list li a:hover {
+    text-decoration: underline;
+}
+
+/* Links styled as buttons */
+a.button-link {
+    display: inline-block;
+    margin-left: 10px; /* Spacing for links next to each other */
+}
+
+/* Adjustments for the main page form elements */
+#index-container form br { /* Hide explicit <br> tags if styling handles spacing */
+    display: none;
+}
